@@ -4,7 +4,7 @@
 </template>
 
 <script>
-import { onBeforeUnmount, ref, watchEffect } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import {Socket} from 'phoenix';
 import {WEB_SOCKET_URL} from './constants';
 import {getToken} from './utils';
@@ -21,21 +21,19 @@ export default {
     }
     
     const fetchData = async() =>{
-            console.log('socket before', socket.value);
-            const token = await getToken();
-            console.log('token after',token);
-            const params = {token};
-            const s = new Socket(WEB_SOCKET_URL, {params});
-            s.onOpen( () => console.log("connection open!") )
-            s.onError( () => console.log("there was an error with the   connection!") )
-            s.onClose( () => console.log("the connection dropped") )
-            s.connect();
-            console.log('socket will', s);
-            setSocket(s);
-        }
-          watchEffect(()=>{
-            fetchData();
-          })
+        console.log('socket before', socket.value);
+        const token = await getToken();
+        console.log('token after',token);
+        const params = {token};
+        const s = new Socket(WEB_SOCKET_URL, {params});
+        s.onOpen( () => console.log("connection open!") )
+        s.onError( () => console.log("there was an error with the   connection!") )
+        s.onClose( () => console.log("the connection dropped") )
+        s.connect();
+        console.log('socket will', s);
+        setSocket(s);
+    }
+    fetchData();
 
     console.log('socket value', socket)
     onBeforeUnmount(()=>{

@@ -43,6 +43,7 @@ import { getToken } from "../utils";
 
 let channel = null; // Define the channel variable outside of setup
 let userId = 0; // Hardcoded user id
+let hasJoined = false;
 
 export default {
   data() {
@@ -61,7 +62,7 @@ export default {
     };
 
     const generateRandomID = () => {
-      return Math.floor(Math.random() * (999 - 100 + 1)) + 100;
+      return 1234;
     };
 
     const fetchData = async () => {
@@ -77,14 +78,7 @@ export default {
       setSocket(s);
 
       // Initialize the channel here
-      channel = s.channel(`chat:coachvantage`);
-      channel
-        .join()
-        .receive("ok", () => console.log("Channel Joined"))
-        .receive("error", () => console.log("Failed to join"))
-        .receive("timeout", () =>
-          console.log("Networking issue. Still waiting...")
-        );
+      channel = s.channel(`chat:coachvantagetest`);
     };
 
     fetchData();
@@ -102,15 +96,38 @@ export default {
     toggleChat() {
       this.showChat = !this.showChat;
 
-      channel.on("new_message", (message) => {
-        console.log(message);
-        // Create a new chat bubble element
-        if (message.created_by == userId) {
-          this.messages.push({ text: message.content, isUser: true });
-        } else {
-          this.messages.push({ text: message.content, isUser: false });
-        }
-      });
+      if (!hasJoined) {
+        channel
+          .join()
+          .receive("ok", () => {
+            console.log("Channel Joined");
+            hasJoined = true;
+          })
+          .receive("error", () => console.log("Failed to join"))
+          .receive("timeout", () =>
+            console.log("Networking issue. Still waiting...")
+          );
+          
+        channel.on("archived_message", (message) => {
+          // by default last 20 messages will be received if there is any chat history present
+          console.log(message);
+          if (message.created_by == userId) {
+            this.messages.push({ text: message.content, isUser: true });
+          } else {
+            this.messages.push({ text: message.content, isUser: false });
+          }
+        });
+
+        channel.on("new_message", (message) => {
+          console.log(message);
+          // Create a new chat bubble element
+          if (message.created_by == userId) {
+            this.messages.push({ text: message.content, isUser: true });
+          } else {
+            this.messages.push({ text: message.content, isUser: false });
+          }
+        });
+      }
     },
 
     sendMessage() {

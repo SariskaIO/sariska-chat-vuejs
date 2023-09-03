@@ -7,7 +7,20 @@
       </button>
     </div>
     <div class="chat-content" v-show="showChat" id="chatContent">
-      <!-- Chat messages go here -->
+      <div
+        v-for="(message, index) in messages"
+        :key="index"
+        class="message-container"
+      >
+        <div
+          :class="{
+            'message-sender': message.isUser,
+            'message-receiver': !message.isUser,
+          }"
+        >
+          {{ message.text }}
+        </div>
+      </div>
     </div>
     <div class="chat-input" v-show="showChat">
       <input
@@ -17,10 +30,10 @@
         v-model="messageText"
       />
       <button @click="sendMessage" class="send-button">Send</button>
+      <div class="button-space"></div>
     </div>
   </div>
 </template>
-
 
 <script>
 import { onBeforeUnmount, ref } from "vue";
@@ -29,8 +42,17 @@ import { WEB_SOCKET_URL } from "../constants";
 import { getToken } from "../utils";
 
 let channel = null; // Define the channel variable outside of setup
+let userId = 0; // Hardcoded user id
 
 export default {
+  data() {
+    return {
+      showChat: false,
+      messageText: "", // This property will store the input text
+      messages: [],
+    };
+  },
+
   setup() {
     const socket = ref(null);
 
@@ -38,8 +60,14 @@ export default {
       socket.value = val;
     };
 
+    const generateRandomID = () => {
+      return Math.floor(Math.random() * (999 - 100 + 1)) + 100;
+    };
+
     const fetchData = async () => {
-      const token = await getToken();
+      userId = generateRandomID();
+      const token = await getToken(userId.toString());
+
       const params = { token };
       const s = new Socket(WEB_SOCKET_URL, { params });
       s.onOpen(() => console.log("connection open!"));
@@ -49,7 +77,7 @@ export default {
       setSocket(s);
 
       // Initialize the channel here
-      channel = s.channel(`chat:roamroam`);
+      channel = s.channel(`chat:coachvantage`);
       channel
         .join()
         .receive("ok", () => console.log("Channel Joined"))
@@ -57,23 +85,6 @@ export default {
         .receive("timeout", () =>
           console.log("Networking issue. Still waiting...")
         );
-
-      channel.on("new_message", (message) => {
-        console.log("Bhai message aya hai " + message.content);
-        // Create a new chat bubble element
-        const messageBubble = document.createElement("div");
-        messageBubble.classList.add("message-bubble");
-
-        // Customize the message bubble HTML structure and styling as needed
-        messageBubble.innerHTML = `<div class="message-content">${message.content}</div>`;
-
-        // Append the chat bubble to the chat content area
-        const chatContent = document.getElementById("chatContent");
-        chatContent.appendChild(messageBubble);
-
-        // Scroll to the bottom of the chat content to display the new message
-        chatContent.scrollTop = chatContent.scrollHeight;
-      });
     };
 
     fetchData();
@@ -87,33 +98,32 @@ export default {
     };
   },
 
-  data() {
-    return {
-      showChat: false,
-      messageText: "", // This property will store the input text
-    };
-  },
-
   methods: {
     toggleChat() {
       this.showChat = !this.showChat;
+
+      channel.on("new_message", (message) => {
+        console.log(message);
+        // Create a new chat bubble element
+        if (message.created_by == userId) {
+          this.messages.push({ text: message.content, isUser: true });
+        } else {
+          this.messages.push({ text: message.content, isUser: false });
+        }
+      });
     },
 
     sendMessage() {
       // Implement sending a message
       const message = this.messageText;
-      console.log(message);
       channel
         .push("new_message", { content: message })
         .receive("ok", () => {
           console.log("Message sent");
-          // You can add additional logic here when the message is successfully sent
         })
         .receive("error", () => {
           console.log("Failed to send message");
-          // You can add error handling logic here if the message fails to send
         });
-
       this.messageText = "";
     },
   },
@@ -127,7 +137,7 @@ export default {
   bottom: 20px;
   right: 20px;
   width: 300px;
-  background-color: #f5f5f5;
+  background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -141,8 +151,7 @@ export default {
 }
 
 .toggle-button {
-  background-color: #0056b3;
-  color: #fff;
+  color: #f0f0f0;
   border: none;
   padding: 5px 10px;
   border-radius: 5px;
@@ -151,13 +160,38 @@ export default {
 }
 
 .toggle-button:hover {
-  background-color: #004999;
+  background-color: #f0f0f0;
 }
 
 .chat-content {
   padding: 10px;
   max-height: 200px;
   overflow-y: auto;
+}
+
+.message-container {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.message-sender {
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 10px;
+  padding: 10px;
+  max-width: 70%;
+  word-wrap: break-word;
+  align-self: flex-start;
+}
+
+.message-receiver {
+  background-color: #f2f2f2;
+  color: #333;
+  border-radius: 10px;
+  padding: 10px;
+  max-width: 70%;
+  word-wrap: break-word;
+  align-self: flex-end; /* Align received messages to the right */
 }
 
 .message-input {
@@ -179,5 +213,9 @@ export default {
 
 .send-button:hover {
   background-color: #0056b3;
+}
+
+.button-space {
+  height: 10px; /* Adjust the height for the desired space */
 }
 </style>

@@ -1,6 +1,6 @@
 import {GENERATE_TOKEN_URL} from "../constants";
 
-export const getToken = async ()=> {
+export const getToken = async (userId)=> {
     const body = {
         method: "POST",
         headers: {
@@ -8,6 +8,9 @@ export const getToken = async ()=> {
         },
         body: JSON.stringify({
             apiKey: "249202aabed00b41363794b526eee6927bd35cbc9bac36cd3edcaa", // enter your app secret
+            user: {  
+                 id: userId
+            }
         })
     };
     try {

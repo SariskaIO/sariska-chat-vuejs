@@ -7,7 +7,7 @@ export const getToken = async (userId)=> {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            apiKey: "249202aabed00b41363794b526eee6927bd35cbc9bac36cd3edcaa", // enter your app secret
+            apiKey: "{Your-api-key}", // enter your app secret
             user: {  
                  id: userId
             }

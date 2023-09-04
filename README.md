@@ -2,6 +2,10 @@
 
 ## Project setup
 
+### Before you Run the Code
+
+In file src/utils/index.js, replace {your-api-key} with the api key generated from your account at console.sariska.io
+
 ### add following script in package.json if node.js > 17 :
 "dev": "NODE_OPTIONS='--openssl-legacy-provider' npm run serve",
 ```

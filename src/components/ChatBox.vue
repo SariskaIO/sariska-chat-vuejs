@@ -67,6 +67,7 @@ export default {
 
     const fetchData = async () => {
       userId = generateRandomID();
+      //Generate Token
       const token = await getToken(userId.toString());
 
       const params = { token };

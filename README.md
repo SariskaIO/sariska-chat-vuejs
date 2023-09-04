@@ -1,6 +1,9 @@
 # sariska-chat-vue
 
 ## Project setup
+
+### add following script in package.json if node.js > 17 :
+"dev": "NODE_OPTIONS='--openssl-legacy-provider' npm run serve",
 ```
 npm install
 ```

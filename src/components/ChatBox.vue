@@ -79,7 +79,7 @@ export default {
       setSocket(s);
 
       // Initialize the channel here
-      channel = s.channel(`chat:coachvantagetest`);
+      channel = s.channel(`chat:{your_room_name}`);
     };
 
     fetchData();
